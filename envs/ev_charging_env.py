@@ -40,38 +40,35 @@ class EVChargingEnv(gym.Env):
         self.state = None
 
     def reset(self):
-
         # Initialize state with zeros for padding
         self.state = np.zeros(self.observation_space.shape[0])
 
-        # Set EV's battery level and average consumption with random values
-        self.state[0] = np.random.uniform(5.5, 100)  # Battery level as percentage (10% to 100%)
-        self.state[1] = np.random.uniform(4.5, 35)  # Average consumption (15 to 25 kWh/100km)
+        
+        # EV'nin batarya seviyesini ve ortalama tüketimini rastgele değerlerle belirle
+        self.state[0] = np.random.uniform(5.5, 100)  # Batarya seviyesi yüzde olarak (10% ile 100% arası)
+        self.state[1] = np.random.uniform(4.5, 35)  # Ortalama tüketim (15 ile 25 kWh/100km arası)
 
-        # Assume a dynamic number of available stations (up to max_stations)
-        # This is for when there are less than 5 stations available on the map. Or we can just set it to 5
+        # Mevcut istasyonların dinamik bir sayısını varsayalım (en fazla max_stations)
+        # Bu, haritada 5 istasyondan az istasyon olduğunda için, veya 5 olarak ayarlayabiliriz
         num_available_stations = np.random.randint(1, self.max_stations + 1)
 
-        alpha_for_current_kw = 2.5  # Weight of occupied spots on charging rate
-
-        # Populate state with data for available stations with realistic values
+        # İstasyonların özelliklerini gerçekçi değerlerle doldur
         for i in range(num_available_stations):
             start_idx = self.num_ev_features + (i * self.num_station_features)
-            # Generate realistic feature values for each station
-            distance = np.random.uniform(1, self.max_distance)  # Distance to the station in km
-            max_spots = np.random.randint(1, 11)  # Max Charging Spots
-            occupied_spots = np.random.randint(0, max_spots + 1)  # Occupied Charging Spots, ensuring it's <= max_spots
-
-            all_time_kw = np.random.uniform(22, self.max_charging_rate)  # Max charging rate when no spots are occupied
-            charging_rate = (max_spots - occupied_spots) / 10 * all_time_kw
-
-            # Current charging rate available in kW
-            price = np.random.uniform(2, self.max_price)  # Price per kWh
-            rating = np.random.uniform(0, 5)  # Rating of the charging station
+            
+            # Her bir istasyon için gerçekçi özellik değerlerini oluştur
+            distance = np.random.uniform(1, self.max_distance)  # İstasyona uzaklık (km cinsinden)
+            max_spots = np.random.randint(1, 11)  # Maksimum Şarj Yerleri
+            occupied_spots = np.random.randint(0, max_spots + 1)  # Dolu Şarj Yerleri, maksimum şarj yerlerine eşit veya küçük olacak şekilde
+            all_time_kw = np.random.uniform(22, self.max_charging_rate)  # Dolu olmayan zamanlarda maksimum şarj hızı
+            charging_rate = (max_spots - occupied_spots) / 10 * all_time_kw  # Mevcut şarj hızı kW cinsinden
+            price = np.random.uniform(2, self.max_price)  # kWh başına fiyat
+            rating = np.random.uniform(0, 5)  # Şarj istasyonunun derecesi
 
             self.state[start_idx:start_idx + self.num_station_features] = [distance, max_spots, occupied_spots,
-                                                                           charging_rate, price, rating]
+                                                                        charging_rate, price, rating]
         return self.state
+
 
     def step(self, action):
         """
@@ -122,3 +119,17 @@ class EVChargingEnv(gym.Env):
         if mode != 'console':
             raise NotImplementedError('Only console mode is supported.')
         print(f'State: {self.state}, Action space: {self.action_space}')
+    
+    #TODO : checkleme kısmının entegrasyonu
+    def select_best_station(self, stations):
+        best_station = None
+        best_reward = float('-inf')  # Başlangıçta en iyi ödülü negatif sonsuz olarak ayarlayın
+        for station in stations:
+            # Her istasyon için ödülü hesaplayın
+            reward = self._calculate_reward(station)
+            # Eğer bu istasyonun ödülü, şu ana kadar görülen en iyi ödül ise
+            if reward > best_reward:
+                best_reward = reward
+                best_station = station
+        return best_station
+

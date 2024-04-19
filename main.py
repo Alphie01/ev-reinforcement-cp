@@ -35,4 +35,8 @@ class ReinforcementAIModel():
             # Günlüğe veya her bölüm sonrası mantığa burada yer verebilirsiniz
             print(f"Bölüm {episode}, Bir Adımlık Ödül: {total_reward}")
         return True  # Tüm bölümler tamamlandığında True döndür
+    
+    def selectBestSpot(self, stations = []):
+        returnStations = self.env.select_best_station(stations=stations)
+        return returnStations
 
