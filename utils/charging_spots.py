@@ -7,19 +7,23 @@ from utils.Calculations import Calculations
 calculation = Calculations()
 
 class ChargingSpots():
+    
+    def __init__(self, json_file):
+        self.data = None
+        self.data = json_file
+    
     def charging_spots(self, lat, longitude, maxCount = 5):
             # JSON dosyasından verileri al
-        with open('data/data.json', 'r') as file:
-            data = json.load(file)
+
 
         en_iyi_5_sarj_istasyonlari = []
-        for istasyon in data:
-            doluluk = calculation.doluluk_duzelt(istasyon["doluluk"])
+        for istasyon in self.data:
+            doluluk = calculation.doluluk_duzelt(istasyon["station_doluluk"])
             if doluluk == 10:
                 continue
 
-            istasyon_latitude = istasyon["cordinates"]["latitude"]
-            istasyon_longitude = istasyon["cordinates"]["longitude"]
+            istasyon_latitude = istasyon["station_latitude"]
+            istasyon_longitude = istasyon["station_longitude"]
 
             mesafe = calculation.mesafe_hesapla(lat, longitude, istasyon_latitude, istasyon_longitude)
 

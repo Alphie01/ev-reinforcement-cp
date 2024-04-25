@@ -12,7 +12,7 @@ import mysql.connector
 app = Flask(__name__)
 
 calculation = Calculations()
-chargingSpots = ChargingSpots()
+
 model = ReinforcementAIModel()
 
 """ DATABASE CONNECTİON """
@@ -24,9 +24,27 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
+
+
 @app.route('/directions', methods=['POST'])
 def get_directions():
-
+    """ if 'user_request_city' not in request.form: """
+        
+    
+    
+    
+    if 'search' in request.form:
+        sql = "SELECT * FROM station WHERE station_displayName LIKE %s LIMIT 8"
+        cursor.execute(sql, ('%' + request.form['search'] + '%',))  # Parametreleri (tuple) verme
+        result = cursor.fetchall()
+        return jsonify({'id': 0, 'returns': result})
+            
+    
+    sql = "SELECT * FROM station"
+    cursor.execute(sql, (request.form))
+    stations = cursor.fetchall()
+    chargingSpots = ChargingSpots(json_file=stations)
+    
     if 'get_direction' in request.form:
         kullanici_latitude = float(request.form['lat'])
         kullanici_longitude = float(request.form['long'])

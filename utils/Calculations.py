@@ -46,8 +46,8 @@ class Calculations:
 
         lat1 = math.radians(kullanici_lat)
         lon1 = math.radians(kullanici_lon)
-        lat2 = math.radians(istasyon_lat)
-        lon2 = math.radians(istasyon_lon)
+        lat2 = math.radians(float(istasyon_lat))
+        lon2 = math.radians(float(istasyon_lon))
 
         dlon = lon2 - lon1
         dlat = lat2 - lat1
@@ -59,4 +59,4 @@ class Calculations:
         return mesafe
 
     def skor_hesapla(self, istasyon):
-        return (istasyon["current_kw"] / 350) + (1 - (istasyon["price"] / 8.9)) + (self.doluluk_duzelt(istasyon["doluluk"]) / 10)
+        return (float(istasyon["station_current_kw"]) / 350) + (1 - (float(istasyon["station_price"]) / 8.9)) + (self.doluluk_duzelt(istasyon["station_doluluk"]) / 10)
