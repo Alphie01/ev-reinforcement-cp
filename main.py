@@ -1,6 +1,7 @@
 from agents.agent import DQNAgent
 from envs.ev_charging_env import EVChargingEnv
 from models.dqn.replay_memory import ReplayMemory
+from utils.Station import Stations
 class ReinforcementAIModel():
     TARGET_UPDATE_FREQUENCY = 10  # Her 10 bölümde bir hedef ağını güncelle
     BATCH_SIZE = 64  # Replay belleğinden örnekleme alınacak minibatch boyutu
@@ -14,6 +15,8 @@ class ReinforcementAIModel():
     replay_memory = ReplayMemory(replay_memory_capacity)
 
     agent = DQNAgent(state_size, action_size, replay_memory)  # DQN ajanını başlat
+
+
 
     def initAI(self):
         for episode in range(self.N_EPISODES):  # type: ignore

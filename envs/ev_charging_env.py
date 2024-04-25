@@ -42,7 +42,6 @@ class EVChargingEnv(gym.Env):
     def reset(self):
         # Initialize state with zeros for padding
         self.state = np.zeros(self.observation_space.shape[0])
-
         
         # EV'nin batarya seviyesini ve ortalama tüketimini rastgele değerlerle belirle
         self.state[0] = np.random.uniform(5.5, 100)  # Batarya seviyesi yüzde olarak (10% ile 100% arası)
@@ -120,7 +119,7 @@ class EVChargingEnv(gym.Env):
             raise NotImplementedError('Only console mode is supported.')
         print(f'State: {self.state}, Action space: {self.action_space}')
     
-    #TODO : checkleme kısmının entegrasyonu
+    #TODO : checkleme kısmının entegrasyonu (reset Çalışmıyor)
     def select_best_station(self, stations):
         best_station = None
         best_reward = float('-inf')  # Başlangıçta en iyi ödülü negatif sonsuz olarak ayarlayın
