@@ -15,6 +15,7 @@ calculation = Calculations()
 
 model = ReinforcementAIModel()
 
+
 """ DATABASE CONNECTİON """
 db = mysql.connector.connect(
         host="localhost",
@@ -28,17 +29,11 @@ cursor = db.cursor(dictionary=True)
 
 @app.route('/directions', methods=['POST'])
 def get_directions():
-    """ if 'user_request_city' not in request.form: """
-        
-    
-    
-    
     if 'search' in request.form:
         sql = "SELECT * FROM station WHERE station_displayName LIKE %s LIMIT 8"
         cursor.execute(sql, ('%' + request.form['search'] + '%',))  # Parametreleri (tuple) verme
         result = cursor.fetchall()
         return jsonify({'id': 0, 'returns': result})
-            
     
     sql = "SELECT * FROM station"
     cursor.execute(sql, (request.form))
@@ -64,7 +59,56 @@ def get_directions():
 
         return jsonify({'id': 0, 'returns': best_station})
 
+@app.route('/comments', methods=['POST'])
+def station_comments():
+    if 'station_comments' in request.form and 'station_id' in request.form:
+        try:
+            sql = "SELECT * FROM station_review WHERE station_review_stationId=%s"
+            cursor.execute(sql, (request.form['station_id'],))  # Parametreleri (tuple) verme
+            result = cursor.fetchall()
+            return jsonify({'id': 0, 'returns': result})
+        except:
+            return jsonify({'id':-1})
+    
+    if 'create_new_comment' in request.form and 'station_review_stationId' in request.form:
+        try:
+            cursor.execute("SELECT * FROM station_review WHERE station_review_stationId = %s and station_review_authorId=%s", (request.form['station_review_stationId'],request.form['user_id'],))
+            user_exists = cursor.fetchone()
+            if user_exists:
+                return jsonify({'error': 'Daha Önceden Yorum Yapılmış.', 'return' : user_exists})
+            
+            kullanicikaydet_query = """INSERT INTO station_review 
+                                        (station_review_stationId, station_review_rating, station_review_authorName, station_review_text, station_review_authorId)
+                                        VALUES (%s, %s, %s, %s, %s)"""
 
+            kullanicikaydet_data = (request.form['station_review_stationId'],request.form['station_review_rating'],request.form['station_review_authorName'],request.form['station_review_text'],request.form['user_id'],)
+
+            cursor.execute(kullanicikaydet_query, kullanicikaydet_data)
+            db.commit()
+            return json.dumps({'id': '0'}), 200
+        except:
+            jsonify({'id' : -1})
+    if 'update_comment' in request.form and 'station_review_id' in request.form and 'user_id' in request.form:
+        try:
+            sql = """UPDATE station_review SET 
+                        station_review_stationId=%s, station_review_rating=%s, station_review_authorName=%s, station_review_text=%s
+                        WHERE station_review_authorId=%s AND station_review_id=%s"""
+            cursor.execute(sql, (request.form['station_review_stationId'],request.form['station_review_rating'],request.form['station_review_authorName'],request.form['station_review_text'],request.form['user_id'],request.form['station_review_id'],))
+            db.commit()
+            
+            if cursor.rowcount > 0:
+                return jsonify({'id': 0})
+        except:
+            return jsonify({'id': -1, 'message': 'Güncelleme başarısız oldu.'})
+    
+    if 'delete_comment' in request.form and 'station_review_id' in request.form and 'user_id' in request.form:
+        try:
+            sql = "DELETE FROM station_review WHERE station_review_id=%s AND station_review_authorId=%s"
+            cursor.execute(sql,(request.form['station_review_id'],request.form['user_id'],))
+            db.commit()
+            return jsonify({'id': 0})
+        except:
+            return jsonify({'id': -1, 'message': 'Silme başarısız oldu.'})
 
 @app.route('/user', methods=['POST'])
 def userRequests():
